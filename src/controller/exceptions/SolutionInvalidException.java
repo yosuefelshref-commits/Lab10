@@ -1,0 +1,7 @@
+package controller.exceptions;
+
+public class SolutionInvalidException extends Exception {
+    public SolutionInvalidException(String message) {
+        super(message);
+    }
+}
