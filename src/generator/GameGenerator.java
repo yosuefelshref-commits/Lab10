@@ -38,8 +38,10 @@ public class GameGenerator {
     }
 
     private int[][] removeCells(int[][] source, int count) {
-
-        int[][] board = source.clone(); // shallow copy (rows shared)
+        int[][] board = new int[9][9];
+        for (int r = 0; r < 9; r++) {
+            System.arraycopy(source[r], 0, board[r], 0, 9);
+        }
 
         RandomPairs randomPairs = new RandomPairs();
         List<int[]> pairs = randomPairs.generateDistinctPairs(count);
