@@ -18,6 +18,8 @@ public class ControllerFacade implements Viewable, Controllable {
 
     private Game currentGame;
 
+    // ================== Catalog ==================
+
     @Override
     public Catalog getCatalog() {
         boolean hasCurrent = StorageManager.hasCurrentGame();
@@ -25,15 +27,17 @@ public class ControllerFacade implements Viewable, Controllable {
         return new Catalog(hasCurrent, hasAll);
     }
 
-
+    // FIX: typo (Statues -> Status)
     @Override
-    public boolean[] getCatalogStatues() {
+    public boolean[] getCatalogStatus() {
         Catalog c = getCatalog();
         return new boolean[]{
                 c.current(),
                 c.allModesExist()
         };
     }
+
+    // ================== Game Generation ==================
 
     @Override
     public void driveGames(String sourcePath)
@@ -63,6 +67,8 @@ public class ControllerFacade implements Viewable, Controllable {
         StorageManager.saveGeneratedGames(games);
     }
 
+    // ================== Loading Games ==================
+
     @Override
     public Game getGame(DifficultyEnum level)
             throws NotFoundException {
@@ -81,6 +87,8 @@ public class ControllerFacade implements Viewable, Controllable {
 
         return getGame(diff).getBoard();
     }
+
+    // ================== Verification ==================
 
     @Override
     public String verifyGame(Game game) {
@@ -122,19 +130,45 @@ public class ControllerFacade implements Viewable, Controllable {
         return ok;
     }
 
+    // ================== Solver (Guards Only) ==================
+
     @Override
     public int[] solveGame(Game game)
             throws InvalidGame {
+
+        if (game == null)
+            throw new InvalidGame("Game is null");
+
+        if (game.countEmptyCells() != 5)
+            throw new InvalidGame(
+                    "Solver works only with exactly 5 empty cells");
+
         throw new UnsupportedOperationException(
                 "Solver not implemented yet");
     }
 
     @Override
-    public int[][] solveGame(int[][] game)
+    public int[][] solveGame(int[][] board)
             throws InvalidGame {
+
+        if (board == null)
+            throw new InvalidGame("Board is null");
+
+        int empty = 0;
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+                if (board[r][c] == 0)
+                    empty++;
+
+        if (empty != 5)
+            throw new InvalidGame(
+                    "Solver works only with exactly 5 empty cells");
+
         throw new UnsupportedOperationException(
                 "Solver not implemented yet");
     }
+
+    // ================== Logging ==================
 
     @Override
     public void logUserAction(String userAction)

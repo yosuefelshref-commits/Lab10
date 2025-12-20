@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public interface Controllable {
 
-    boolean[] getCatalogStatues();
+    boolean[] getCatalogStatus();
 
     int[][] getGame(char level)
             throws NotFoundException;

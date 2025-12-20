@@ -13,6 +13,7 @@ import java.util.Map;
 public class GameGenerator {
 
     private final SudokuVerifier verifier = new SudokuVerifier();
+    private final RandomPairs randomPairs = new RandomPairs();
 
     public Map<DifficultyEnum, Game> generateFromSolved(int[][] solvedBoard)
             throws SolutionInvalidException {
@@ -20,38 +21,43 @@ public class GameGenerator {
         VerificationResult result = verifier.verify(solvedBoard);
 
         if (result != VerificationResult.VALID) {
-            throw new SolutionInvalidException("Solution is invalid or incomplete");
+            throw new SolutionInvalidException(
+                    "Solution is invalid or incomplete");
         }
 
         Map<DifficultyEnum, Game> games = new HashMap<>();
 
         games.put(DifficultyEnum.EASY,
-                new Game(removeCells(solvedBoard, 10)));
+                new Game(createGameBoard(solvedBoard, 10)));
 
         games.put(DifficultyEnum.MEDIUM,
-                new Game(removeCells(solvedBoard, 20)));
+                new Game(createGameBoard(solvedBoard, 20)));
 
         games.put(DifficultyEnum.HARD,
-                new Game(removeCells(solvedBoard, 25)));
+                new Game(createGameBoard(solvedBoard, 25)));
 
         return games;
     }
 
-    private int[][] removeCells(int[][] source, int count) {
-        int[][] board = new int[9][9];
-        for (int r = 0; r < 9; r++) {
-            System.arraycopy(source[r], 0, board[r], 0, 9);
-        }
+    private int[][] createGameBoard(int[][] solved, int emptyCells) {
 
-        RandomPairs randomPairs = new RandomPairs();
-        List<int[]> pairs = randomPairs.generateDistinctPairs(count);
+        int[][] board = copyBoard(solved);
 
-        for (int[] pair : pairs) {
-            int row = pair[0];
-            int col = pair[1];
-            board[row][col] = 0;
+        List<int[]> pairs =
+                randomPairs.generateDistinctPairs(emptyCells);
+
+        for (int[] p : pairs) {
+            board[p[0]][p[1]] = 0;
         }
 
         return board;
+    }
+
+    private int[][] copyBoard(int[][] source) {
+        int[][] copy = new int[9][9];
+        for (int r = 0; r < 9; r++) {
+            System.arraycopy(source[r], 0, copy[r], 0, 9);
+        }
+        return copy;
     }
 }
