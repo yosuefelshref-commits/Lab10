@@ -1,5 +1,6 @@
 package view;
 
+import controller.ControllerAdapter;
 import controller.ControllerFacade;
 import controller.exceptions.*;
 
@@ -10,11 +11,11 @@ import java.io.IOException;
 
 public class SudokuGUI extends JFrame {
 
-    private final ControllerFacade controller = new ControllerFacade();
+    private final ControllerAdapter controller = new ControllerAdapter(new ControllerFacade());
     private JTextField[][] cells = new JTextField[9][9];
     private JButton verifyBtn, solveBtn, undoBtn;
     private JLabel statusLabel;
-    private int[][] initialBoard; // للتفرقة بين الخلايا الأصلية
+    private int[][] initialBoard;
 
     public SudokuGUI() {
         setTitle("Sudoku Game");
