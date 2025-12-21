@@ -6,11 +6,6 @@ import view.*;
 
 import java.io.IOException;
 
-/**
- * Adapter Pattern:
- * Unifies Viewable and Controllable interfaces
- * without modifying ControllerFacade.
- */
 public class ControllerAdapter implements Viewable, Controllable {
 
     private final ControllerFacade controller;
