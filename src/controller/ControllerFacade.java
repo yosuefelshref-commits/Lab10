@@ -10,11 +10,13 @@ import view.UserAction;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Stack;
 
 public class ControllerFacade implements Viewable, Controllable {
 
     private final GameGenerator generator = new GameGenerator();
     private final SudokuVerifier verifier = new SudokuVerifier();
+    private final Stack<Move> history = new Stack<>();
 
     private Game currentGame;
 
@@ -74,6 +76,7 @@ public class ControllerFacade implements Viewable, Controllable {
             throws NotFoundException {
 
         currentGame = StorageManager.loadGame(level);
+        history.clear();
         return currentGame;
     }
 
@@ -168,6 +171,24 @@ public class ControllerFacade implements Viewable, Controllable {
                 "Solver not implemented yet");
     }
 
+    // ================== Game Play ==================
+
+    @Override
+    public void updateBoard(int row, int col, int value) {
+        if (currentGame == null) return;
+        int[][] board = currentGame.getBoard();
+        int oldValue = board[row][col];
+        board[row][col] = value;
+        history.push(new Move(row, col, oldValue, value));
+    }
+
+    @Override
+    public void undo() {
+        if (history.isEmpty() || currentGame == null) return;
+        Move move = history.pop();
+        currentGame.getBoard()[move.getRow()][move.getCol()] = move.getOldValue();
+    }
+
     // ================== Logging ==================
 
     @Override
@@ -180,5 +201,11 @@ public class ControllerFacade implements Viewable, Controllable {
     public void logUserAction(UserAction userAction)
             throws IOException {
         StorageManager.log(userAction.toString());
+    }
+
+    @Override
+    public boolean[] getCatalogStatues() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCatalogStatues'");
     }
 }
