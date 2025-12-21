@@ -3,22 +3,24 @@ package controller;
 import model.*;
 import generator.GameGenerator;
 import storage.StorageManager;
+import storage.UndoManager;
 import verifier.*;
 import controller.exceptions.*;
 import view.Controllable;
 import view.UserAction;
+import solver.PermutationSolver;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Stack;
 
 public class ControllerFacade implements Viewable, Controllable {
 
     private final GameGenerator generator = new GameGenerator();
     private final SudokuVerifier verifier = new SudokuVerifier();
-    private final Stack<Move> history = new Stack<>();
+    private final PermutationSolver solver = new PermutationSolver();
 
     private Game currentGame;
+    private DifficultyEnum currentDifficulty;
 
     // ================== Catalog ==================
 
@@ -29,7 +31,6 @@ public class ControllerFacade implements Viewable, Controllable {
         return new Catalog(hasCurrent, hasAll);
     }
 
-    // FIX: typo (Statues -> Status)
     @Override
     public boolean[] getCatalogStatus() {
         Catalog c = getCatalog();
@@ -76,7 +77,8 @@ public class ControllerFacade implements Viewable, Controllable {
             throws NotFoundException {
 
         currentGame = StorageManager.loadGame(level);
-        history.clear();
+        currentDifficulty = level;
+        UndoManager.clearLog(); // Start fresh log
         return currentGame;
     }
 
@@ -84,11 +86,31 @@ public class ControllerFacade implements Viewable, Controllable {
     public int[][] getGame(char level)
             throws NotFoundException {
 
-        DifficultyEnum diff =
-                DifficultyEnum.valueOf(
-                        String.valueOf(level).toUpperCase());
+        DifficultyEnum diff = switch (Character.toLowerCase(level)) {
+            case 'e' -> DifficultyEnum.EASY;
+            case 'm' -> DifficultyEnum.MEDIUM;
+            case 'h' -> DifficultyEnum.HARD;
+            default -> throw new IllegalArgumentException("Invalid level: " + level);
+        };
 
         return getGame(diff).getBoard();
+    }
+
+    /**
+     * Load current unfinished game
+     */
+    public int[][] getCurrentGame() throws NotFoundException {
+        int[][] board = StorageManager.loadCurrentGame();
+        currentGame = new Game(board);
+        currentDifficulty = null; // Unknown for resumed games
+        return board;
+    }
+
+    /**
+     * Get current board reference
+     */
+    public int[][] getCurrentBoard() {
+        return currentGame != null ? currentGame.getBoard() : null;
     }
 
     // ================== Verification ==================
@@ -99,8 +121,13 @@ public class ControllerFacade implements Viewable, Controllable {
         VerificationResult result =
                 verifier.verify(game.getBoard());
 
-        if (result == VerificationResult.VALID)
+        if (result == VerificationResult.VALID) {
+            // Game completed successfully
+            if (currentDifficulty != null) {
+                StorageManager.deleteSolvedGame(currentDifficulty);
+            }
             return "valid";
+        }
 
         if (result == VerificationResult.INCOMPLETE)
             return "incomplete";
@@ -133,7 +160,23 @@ public class ControllerFacade implements Viewable, Controllable {
         return ok;
     }
 
-    // ================== Solver (Guards Only) ==================
+    /**
+     * Check if board is complete and handle completion
+     */
+    public void checkCompletion(int[][] board) {
+        VerificationResult result = verifier.verify(board);
+
+        if (result == VerificationResult.VALID) {
+            // Delete from difficulty folder
+            if (currentDifficulty != null) {
+                StorageManager.deleteSolvedGame(currentDifficulty);
+            }
+            // Delete current game
+            StorageManager.deleteCurrentGame();
+        }
+    }
+
+    // ================== Solver ==================
 
     @Override
     public int[] solveGame(Game game)
@@ -146,8 +189,7 @@ public class ControllerFacade implements Viewable, Controllable {
             throw new InvalidGame(
                     "Solver works only with exactly 5 empty cells");
 
-        throw new UnsupportedOperationException(
-                "Solver not implemented yet");
+        return solver.solve(game.getBoard());
     }
 
     @Override
@@ -167,26 +209,29 @@ public class ControllerFacade implements Viewable, Controllable {
             throw new InvalidGame(
                     "Solver works only with exactly 5 empty cells");
 
-        throw new UnsupportedOperationException(
-                "Solver not implemented yet");
+        // Solve and convert format
+        int[] solution = solver.solve(board);
+
+        // Convert from [x1,y1,val1, x2,y2,val2, ...]
+        // to [[x1,y1,val1], [x2,y2,val2], ...]
+        int[][] result = new int[5][3];
+        for (int i = 0; i < 5; i++) {
+            result[i][0] = solution[i * 3];
+            result[i][1] = solution[i * 3 + 1];
+            result[i][2] = solution[i * 3 + 2];
+        }
+
+        return result;
     }
 
-    // ================== Game Play ==================
+    // ================== Undo ==================
 
-    @Override
-    public void updateBoard(int row, int col, int value) {
-        if (currentGame == null) return;
-        int[][] board = currentGame.getBoard();
-        int oldValue = board[row][col];
-        board[row][col] = value;
-        history.push(new Move(row, col, oldValue, value));
+    public UserAction undo() throws IOException {
+        return UndoManager.undoLastMove();
     }
 
-    @Override
-    public void undo() {
-        if (history.isEmpty() || currentGame == null) return;
-        Move move = history.pop();
-        currentGame.getBoard()[move.getRow()][move.getCol()] = move.getOldValue();
+    public boolean canUndo() {
+        return UndoManager.canUndo();
     }
 
     // ================== Logging ==================
@@ -201,11 +246,19 @@ public class ControllerFacade implements Viewable, Controllable {
     public void logUserAction(UserAction userAction)
             throws IOException {
         StorageManager.log(userAction.toString());
+
+        // Update current game after each move
+        if (userAction.getType() == UserAction.ActionType.MOVE) {
+            StorageManager.saveCurrentGame(currentGame.getBoard());
+        }
     }
 
-    @Override
-    public boolean[] getCatalogStatues() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCatalogStatues'");
+    // ================== Move Handling ==================
+    public void makeMove(int row, int col, int value) throws IOException {
+        int prevValue = currentGame.getBoard()[row][col];
+        currentGame.getBoard()[row][col] = value;
+
+        UserAction action = new UserAction(row, col, value, prevValue);
+        logUserAction(action);
     }
 }
