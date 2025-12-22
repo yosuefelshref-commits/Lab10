@@ -5,7 +5,6 @@ public class SudokuVerifier {
     public VerificationResult verify(int[][] board) {
         boolean hasZero = false;
 
-        // Rows
         for (int r = 0; r < 9; r++) {
             boolean[] seen = new boolean[10];
             for (int c = 0; c < 9; c++) {
@@ -19,7 +18,6 @@ public class SudokuVerifier {
             }
         }
 
-        // Cols
         for (int c = 0; c < 9; c++) {
             boolean[] seen = new boolean[10];
             for (int r = 0; r < 9; r++) {
@@ -33,7 +31,6 @@ public class SudokuVerifier {
             }
         }
 
-        // Boxes
         for (int br = 0; br < 3; br++) {
             for (int bc = 0; bc < 3; bc++) {
                 boolean[] seen = new boolean[10];
@@ -57,7 +54,6 @@ public class SudokuVerifier {
 
         InvalidCells invalid = new InvalidCells();
 
-        // Rows
         for (int r = 0; r < 9; r++) {
             int[] count = new int[10];
             for (int c = 0; c < 9; c++)
@@ -71,7 +67,6 @@ public class SudokuVerifier {
             }
         }
 
-        // Cols
         for (int c = 0; c < 9; c++) {
             int[] count = new int[10];
             for (int r = 0; r < 9; r++)
@@ -85,7 +80,6 @@ public class SudokuVerifier {
             }
         }
 
-        // Boxes
         for (int br = 0; br < 3; br++) {
             for (int bc = 0; bc < 3; bc++) {
 

@@ -125,9 +125,6 @@ public class SudokuGUI extends JFrame {
         }
     }
 
-    /**
-     * نسخ الـ board الأصلي عشان نعرف الخلايا الثابتة
-     */
     private void copyInitialBoard() {
         int[][] currentBoard = getCurrentBoard();
         initialBoard = new int[9][9];
@@ -136,9 +133,6 @@ public class SudokuGUI extends JFrame {
         }
     }
 
-    /**
-     * الحصول على الـ board الحالي من الـ controller
-     */
     private int[][] getCurrentBoard() {
         return controller.getCurrentBoard();
     }
@@ -163,7 +157,6 @@ public class SudokuGUI extends JFrame {
         field.setHorizontalAlignment(JTextField.CENTER);
         field.setFont(new Font("Arial", Font.BOLD, 20));
 
-        // Color 3x3 boxes
         if ((row / 3 + col / 3) % 2 == 0) {
             field.setBackground(new Color(240, 240, 240));
         } else {
@@ -173,30 +166,24 @@ public class SudokuGUI extends JFrame {
         int[][] board = getCurrentBoard();
         int value = board[row][col];
 
-        // Set initial value
         if (value != 0) {
             field.setText(String.valueOf(value));
 
-            // الخلايا الأصلية (من الـ initialBoard)
             if (initialBoard[row][col] != 0) {
                 field.setEditable(false);
                 field.setForeground(Color.BLACK);
                 field.setFont(new Font("Arial", Font.BOLD, 22));
             } else {
-                // خلايا اتملت من اللاعب
                 field.setForeground(Color.BLUE);
             }
         } else {
             field.setForeground(Color.BLUE);
         }
 
-        // Add border to 3x3 boxes
         updateCellBorder(field, row, col, false);
 
-        // Add listener for moves
         field.addActionListener(e -> handleCellInput(row, col, field));
 
-        // Add focus listener
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 handleCellInput(row, col, field);
@@ -223,7 +210,6 @@ public class SudokuGUI extends JFrame {
     }
 
     private void handleCellInput(int row, int col, JTextField field) {
-        // لو الخلية أصلية (غير قابلة للتعديل)
         if (initialBoard[row][col] != 0) {
             return;
         }
@@ -296,7 +282,6 @@ public class SudokuGUI extends JFrame {
         btnPanel.add(solveBtn);
         btnPanel.add(undoBtn);
 
-        // Status label
         statusLabel = new JLabel("Ready");
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -327,14 +312,12 @@ public class SudokuGUI extends JFrame {
         int[][] board = getCurrentBoard();
         boolean[][] valid = controller.verifyGame(board);
 
-        // Highlight invalid cells
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                 updateCellBorder(cells[r][c], r, c, !valid[r][c]);
             }
         }
 
-        // Count invalid cells
         int invalidCount = 0;
         for (int r = 0; r < 9; r++)
             for (int c = 0; c < 9; c++)
@@ -349,7 +332,6 @@ public class SudokuGUI extends JFrame {
             statusLabel.setForeground(Color.RED);
         }
 
-        // Reset color after 3 seconds
         Timer timer = new Timer(3000, e -> statusLabel.setForeground(Color.BLACK));
         timer.setRepeats(false);
         timer.start();
@@ -404,13 +386,10 @@ public class SudokuGUI extends JFrame {
 
             int r = action.getRow();
             int c = action.getCol();
-            int val = action.getNewValue(); // القيمة اللي هنرجعها
+            int val = action.getNewValue();
 
-            // Update GUI
             cells[r][c].setText(val == 0 ? "" : String.valueOf(val));
             cells[r][c].setForeground(Color.BLUE);
-
-            // Clear any error borders
             updateCellBorder(cells[r][c], r, c, false);
 
             statusLabel.setText("Undone: Cell (" + r + ", " + c + ") restored to " + (val == 0 ? "empty" : val));
@@ -449,12 +428,11 @@ public class SudokuGUI extends JFrame {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "🎉 Congratulations! Puzzle solved correctly! 🎉",
+                        "Congratulations! Puzzle solved correctly!",
                         "Success",
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
-                // Ask to play again
                 int choice = JOptionPane.showConfirmDialog(
                         this,
                         "Play another game?",

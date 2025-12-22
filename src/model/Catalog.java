@@ -10,12 +10,10 @@ public class Catalog {
         this.allModesExist = allModesExist;
     }
 
-    // بدل hasUnfinished()
     public boolean current() {
         return currentGameExists;
     }
 
-    // بدل hasEasyMediumHard()
     public boolean allModesExist() {
         return allModesExist;
     }

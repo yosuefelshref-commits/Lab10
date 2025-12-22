@@ -123,7 +123,6 @@ class PermutationIterator implements Iterator<int[]> {
         this.size = size;
         this.current = new int[size];
 
-        // Initialize first permutation: [1, 1, 1, 1, 1]
         for (int i = 0; i < size; i++) {
             current[i] = 1;
         }
@@ -141,11 +140,7 @@ class PermutationIterator implements Iterator<int[]> {
         if (!hasNext) {
             throw new NoSuchElementException();
         }
-
-        // Return copy of current permutation
         int[] result = current.clone();
-
-        // Generate next permutation (like odometer)
         increment();
 
         return result;
@@ -154,14 +149,13 @@ class PermutationIterator implements Iterator<int[]> {
     private void increment() {
         int pos = size - 1;
 
-        // Find position to increment
         while (pos >= 0 && current[pos] == 9) {
-            current[pos] = 1; // Reset to 1
+            current[pos] = 1;
             pos--;
         }
 
         if (pos < 0) {
-            hasNext = false; // Reached [9,9,9,9,9]
+            hasNext = false;
         } else {
             current[pos]++;
         }

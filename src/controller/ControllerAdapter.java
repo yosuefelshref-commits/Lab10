@@ -14,7 +14,7 @@ public class ControllerAdapter implements Viewable, Controllable {
         this.controller = controller;
     }
 
-    // ========= Viewable =========
+    // Viewable
 
     @Override
     public Catalog getCatalog() {
@@ -50,7 +50,7 @@ public class ControllerAdapter implements Viewable, Controllable {
         controller.logUserAction(userAction);
     }
 
-    // ========= Controllable =========
+    //  Controllable
 
     @Override
     public boolean[] getCatalogStatus() {
@@ -86,7 +86,7 @@ public class ControllerAdapter implements Viewable, Controllable {
         controller.logUserAction(userAction);
     }
 
-    // ========= Extra exposed methods (optional passthrough) =========
+    //  Extra
 
     public int[][] getCurrentBoard() {
         return controller.getCurrentBoard();

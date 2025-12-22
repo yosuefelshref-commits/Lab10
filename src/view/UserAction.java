@@ -17,7 +17,6 @@ public class UserAction {
         EXIT
     }
 
-    // Constructor for MOVE action
     public UserAction(int row, int col, int newValue, int prevValue) {
         this.type = ActionType.MOVE;
         this.row = row;
@@ -26,7 +25,6 @@ public class UserAction {
         this.prevValue = prevValue;
     }
 
-    // Constructor for other actions
     public UserAction(ActionType type) {
         this.type = type;
         this.row = -1;
@@ -66,7 +64,6 @@ public class UserAction {
 
     public static UserAction fromString(String line) {
         if (line.startsWith("(")) {
-            // Parse "(x,y,val,prev)"
             String content = line.substring(1, line.length() - 1);
             String[] parts = content.split(",");
 

@@ -20,32 +20,27 @@ public class UndoManager {
             throw new IOException("No log file found");
         }
 
-        // Read all lines
         List<String> lines = Files.readAllLines(logFile.toPath());
 
         if (lines.isEmpty()) {
             throw new IOException("No moves to undo");
         }
 
-        // Get last line
         String lastLine = lines.get(lines.size() - 1);
-
-        // Parse action
         UserAction lastAction = UserAction.fromString(lastLine);
 
         if (lastAction.getType() != UserAction.ActionType.MOVE) {
             throw new IOException("Cannot undo non-MOVE action");
         }
 
-        // Remove last line from file
         lines.remove(lines.size() - 1);
         Files.write(logFile.toPath(), lines);
 
-        // Return inverse action (restore previous value)
+
         return new UserAction(
                 lastAction.getRow(),
                 lastAction.getCol(),
-                lastAction.getPrevValue(), // Restore previous value
+                lastAction.getPrevValue(),
                 lastAction.getNewValue()
         );
     }

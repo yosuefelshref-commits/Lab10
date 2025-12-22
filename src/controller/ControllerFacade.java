@@ -96,9 +96,6 @@ public class ControllerFacade implements Viewable, Controllable {
         return getGame(diff).getBoard();
     }
 
-    /**
-     * Load current unfinished game
-     */
     public int[][] getCurrentGame() throws NotFoundException {
         int[][] board = StorageManager.loadCurrentGame();
         currentGame = new Game(board);
@@ -106,9 +103,6 @@ public class ControllerFacade implements Viewable, Controllable {
         return board;
     }
 
-    /**
-     * Get current board reference
-     */
     public int[][] getCurrentBoard() {
         return currentGame != null ? currentGame.getBoard() : null;
     }
@@ -160,18 +154,13 @@ public class ControllerFacade implements Viewable, Controllable {
         return ok;
     }
 
-    /**
-     * Check if board is complete and handle completion
-     */
     public void checkCompletion(int[][] board) {
         VerificationResult result = verifier.verify(board);
 
         if (result == VerificationResult.VALID) {
-            // Delete from difficulty folder
             if (currentDifficulty != null) {
                 StorageManager.deleteSolvedGame(currentDifficulty);
             }
-            // Delete current game
             StorageManager.deleteCurrentGame();
         }
     }
@@ -209,11 +198,8 @@ public class ControllerFacade implements Viewable, Controllable {
             throw new InvalidGame(
                     "Solver works only with exactly 5 empty cells");
 
-        // Solve and convert format
         int[] solution = solver.solve(board);
 
-        // Convert from [x1,y1,val1, x2,y2,val2, ...]
-        // to [[x1,y1,val1], [x2,y2,val2], ...]
         int[][] result = new int[5][3];
         for (int i = 0; i < 5; i++) {
             result[i][0] = solution[i * 3];
@@ -247,7 +233,6 @@ public class ControllerFacade implements Viewable, Controllable {
             throws IOException {
         StorageManager.log(userAction.toString());
 
-        // Update current game after each move
         if (userAction.getType() == UserAction.ActionType.MOVE) {
             StorageManager.saveCurrentGame(currentGame.getBoard());
         }
