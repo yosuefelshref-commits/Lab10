@@ -4,48 +4,34 @@ import model.Cell;
 import verifier.SudokuVerifier;
 import verifier.VerificationResult;
 import controller.exceptions.InvalidGame;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/**
- * Permutation-based Sudoku solver for exactly 5 empty cells.
- * Uses Iterator pattern to generate permutations on-the-fly.
- * Uses Flyweight pattern to avoid memory overhead.
- */
 public class PermutationSolver {
 
     private final SudokuVerifier verifier = new SudokuVerifier();
 
-    /**
-     * Solves a Sudoku board with exactly 5 empty cells.
-     * @return int[] containing: [x1, y1, val1, x2, y2, val2, ...]
-     */
     public int[] solve(int[][] board) throws InvalidGame {
 
-        // 1. Validate board state
         if (verifier.verify(board) == VerificationResult.INVALID) {
             throw new InvalidGame("Board is already invalid");
         }
 
-        // 2. Find empty cells
         List<Cell> emptyCells = findEmptyCells(board);
 
         if (emptyCells.size() != 5) {
-            throw new InvalidGame("Solver requires exactly 5 empty cells, found: " + emptyCells.size());
+            throw new InvalidGame(
+                    "Solver requires exactly 5 empty cells, found: " + emptyCells.size());
         }
 
-        // 3. Create permutation iterator (9^5 combinations)
-        PermutationIterator permIterator = new PermutationIterator(5);
+        PermutationIterator iterator = new PermutationIterator(5);
 
-        // 4. Try each permutation
-        while (permIterator.hasNext()) {
-            int[] perm = permIterator.next();
+        while (iterator.hasNext()) {
+            int[] perm = iterator.next();
 
-            // Use Flyweight pattern - don't modify original board
-            if (isValidPermutation(board, emptyCells, perm)) {
+            if (applyAndCheck(board, emptyCells, perm)) {
                 return buildSolution(emptyCells, perm);
             }
         }
@@ -53,42 +39,28 @@ public class PermutationSolver {
         throw new InvalidGame("No solution found");
     }
 
-    /**
-     * Check if permutation makes the board valid WITHOUT modifying original.
-     * This is the Flyweight pattern application - we create temporary view.
-     */
-    private boolean isValidPermutation(int[][] board,
-                                       List<Cell> cells,
-                                       int[] values) {
+    private boolean applyAndCheck(int[][] board,
+                                  List<Cell> cells,
+                                  int[] values) {
 
-        // Create a COPY for verification (Flyweight: reuse Digit objects)
-        int[][] testBoard = copyBoard(board);
-
-        // Apply permutation to copy
         for (int i = 0; i < 5; i++) {
             Cell c = cells.get(i);
-            testBoard[c.getRow()][c.getCol()] = values[i];
+            Digit d = Digit.Factory.get(values[i]);
+            board[c.getRow()][c.getCol()] = d.getValue();
         }
 
-        // Verify the copy
-        VerificationResult result = verifier.verify(testBoard);
+        boolean valid =
+                verifier.verify(board) == VerificationResult.VALID;
 
-        return result == VerificationResult.VALID;
-    }
-
-    /**
-     * Create a shallow copy of board for testing
-     */
-    private int[][] copyBoard(int[][] source) {
-        int[][] copy = new int[9][9];
-        for (int r = 0; r < 9; r++) {
-            System.arraycopy(source[r], 0, copy[r], 0, 9);
+        for (Cell c : cells) {
+            board[c.getRow()][c.getCol()] = 0;
         }
-        return copy;
+
+        return valid;
     }
 
     private int[] buildSolution(List<Cell> cells, int[] values) {
-        int[] solution = new int[15]; // 5 cells × 3 (x, y, value)
+        int[] solution = new int[15];
 
         for (int i = 0; i < 5; i++) {
             Cell c = cells.get(i);
@@ -102,16 +74,14 @@ public class PermutationSolver {
 
     private List<Cell> findEmptyCells(int[][] board) {
         List<Cell> empty = new ArrayList<>();
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                if (board[r][c] == 0) {
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+                if (board[r][c] == 0)
                     empty.add(new Cell(r, c));
-                }
-            }
-        }
         return empty;
     }
 }
+
 
 class PermutationIterator implements Iterator<int[]> {
 
