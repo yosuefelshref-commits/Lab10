@@ -26,4 +26,8 @@ public class EmptyCellIterator implements CellIterator {
     public Cell next() {
         return cells.get(index++);
     }
+
+    public List<Cell> getCells() {
+        return cells;
+    }
 }

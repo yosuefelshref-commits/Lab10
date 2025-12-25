@@ -8,7 +8,7 @@ import verifier.*;
 import controller.exceptions.*;
 import view.Controllable;
 import view.UserAction;
-import solver.PermutationSolver;
+import solver.ParallelPermutationSolver;
 
 import java.io.IOException;
 import java.util.Map;
@@ -17,8 +17,7 @@ public class ControllerFacade implements Viewable, Controllable {
 
     private final GameGenerator generator = new GameGenerator();
     private final SudokuVerifier verifier = new SudokuVerifier();
-    private final PermutationSolver solver = new PermutationSolver();
-
+    private final ParallelPermutationSolver solver = new ParallelPermutationSolver();
     private Game currentGame;
     private DifficultyEnum currentDifficulty;
 
